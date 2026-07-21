@@ -1,88 +1,60 @@
-const intro = document.getElementById('intro');
-const skipIntro = document.getElementById('skipIntro');
-const body = document.body;
+const opening = document.getElementById('opening');
+const enterButton = document.getElementById('enterButton');
+const topbar = document.getElementById('topbar');
+const menuButton = document.getElementById('menuButton');
+const menuPanel = document.getElementById('menuPanel');
+const musicButton = document.getElementById('musicButton');
 
-function closeIntro() {
-  intro.classList.add('is-hidden');
-  body.classList.remove('is-locked');
-  window.setTimeout(() => intro.remove(), 900);
+function enterSite() {
+  opening.classList.add('is-hidden');
+  document.body.classList.remove('is-locked');
+  topbar.classList.add('is-visible');
+  setTimeout(() => opening.remove(), 900);
 }
 
-body.classList.add('is-locked');
-const introSeen = sessionStorage.getItem('dm-intro-seen');
-if (introSeen) {
-  closeIntro();
-} else {
-  window.setTimeout(() => {
-    sessionStorage.setItem('dm-intro-seen', 'true');
-    closeIntro();
-  }, 3200);
+enterButton.addEventListener('click', enterSite);
+
+function toggleMenu(force) {
+  const willOpen = typeof force === 'boolean' ? force : !menuPanel.classList.contains('is-open');
+  menuPanel.classList.toggle('is-open', willOpen);
+  menuPanel.setAttribute('aria-hidden', String(!willOpen));
+  menuButton.setAttribute('aria-expanded', String(willOpen));
+  document.body.classList.toggle('is-locked', willOpen);
 }
-skipIntro.addEventListener('click', () => {
-  sessionStorage.setItem('dm-intro-seen', 'true');
-  closeIntro();
-});
 
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('is-visible');
-      revealObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.18 });
+menuButton.addEventListener('click', () => toggleMenu());
+menuPanel.querySelectorAll('a').forEach(link => link.addEventListener('click', () => toggleMenu(false)));
 
-document.querySelectorAll('.reveal').forEach((element) => revealObserver.observe(element));
+window.addEventListener('scroll', () => {
+  topbar.classList.toggle('is-scrolled', window.scrollY > 40);
+}, { passive: true });
 
 const weddingDate = new Date('2027-11-27T12:00:00-03:00').getTime();
-const fields = {
-  days: document.getElementById('days'),
-  hours: document.getElementById('hours'),
-  minutes: document.getElementById('minutes'),
-  seconds: document.getElementById('seconds')
-};
-
-function pad(value, length = 2) {
-  return String(value).padStart(length, '0');
-}
-
 function updateCountdown() {
   const distance = Math.max(0, weddingDate - Date.now());
   const days = Math.floor(distance / 86400000);
   const hours = Math.floor((distance % 86400000) / 3600000);
   const minutes = Math.floor((distance % 3600000) / 60000);
   const seconds = Math.floor((distance % 60000) / 1000);
-
-  fields.days.textContent = pad(days, 3);
-  fields.hours.textContent = pad(hours);
-  fields.minutes.textContent = pad(minutes);
-  fields.seconds.textContent = pad(seconds);
+  document.getElementById('days').textContent = String(days).padStart(3, '0');
+  document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+  document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+  document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
 }
 updateCountdown();
-window.setInterval(updateCountdown, 1000);
+setInterval(updateCountdown, 1000);
 
-const musicButton = document.getElementById('musicButton');
-const music = document.getElementById('weddingMusic');
-const musicNote = document.getElementById('musicNote');
-const musicIcon = musicButton.querySelector('.music-button__icon');
-const musicStrong = musicButton.querySelector('strong');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('is-visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.14 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-musicButton.addEventListener('click', async () => {
-  if (!music.paused) {
-    music.pause();
-    musicButton.setAttribute('aria-pressed', 'false');
-    musicIcon.textContent = '▶';
-    musicStrong.textContent = 'Ouvir “Nossos Caminhos”';
-    return;
-  }
-
-  try {
-    await music.play();
-    musicButton.setAttribute('aria-pressed', 'true');
-    musicIcon.textContent = 'Ⅱ';
-    musicStrong.textContent = 'Pausar nossa música';
-    musicNote.hidden = true;
-  } catch (error) {
-    musicNote.hidden = false;
-  }
+musicButton.addEventListener('click', () => {
+  const musicUrl = 'https://www.youtube.com/results?search_query=Nossos+Caminhos+Nelsinho+Correa';
+  window.open(musicUrl, '_blank', 'noopener,noreferrer');
 });
