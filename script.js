@@ -1,59 +1,88 @@
-const weddingDate = new Date(
-  document.querySelector(".countdown").dataset.weddingDate
-);
+const intro = document.getElementById('intro');
+const skipIntro = document.getElementById('skipIntro');
+const body = document.body;
 
-function updateCountdown() {
-  const now = new Date();
-  const difference = weddingDate - now;
-
-  if (difference <= 0) {
-    document.querySelector(".countdown").innerHTML =
-      "<p class='light'>Hoje é o nosso grande dia!</p>";
-    return;
-  }
-
-  const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
-  const minutes = Math.floor((difference / (1000 * 60)) % 60);
-  const seconds = Math.floor((difference / 1000) % 60);
-
-  document.getElementById("days").textContent = String(days).padStart(3, "0");
-  document.getElementById("hours").textContent = String(hours).padStart(2, "0");
-  document.getElementById("minutes").textContent = String(minutes).padStart(2, "0");
-  document.getElementById("seconds").textContent = String(seconds).padStart(2, "0");
+function closeIntro() {
+  intro.classList.add('is-hidden');
+  body.classList.remove('is-locked');
+  window.setTimeout(() => intro.remove(), 900);
 }
 
-updateCountdown();
-setInterval(updateCountdown, 1000);
-
-const menuToggle = document.querySelector(".menu-toggle");
-const navLinks = document.querySelector(".nav-links");
-
-menuToggle.addEventListener("click", () => {
-  const isOpen = navLinks.classList.toggle("open");
-  menuToggle.setAttribute("aria-expanded", isOpen);
+body.classList.add('is-locked');
+const introSeen = sessionStorage.getItem('dm-intro-seen');
+if (introSeen) {
+  closeIntro();
+} else {
+  window.setTimeout(() => {
+    sessionStorage.setItem('dm-intro-seen', 'true');
+    closeIntro();
+  }, 3200);
+}
+skipIntro.addEventListener('click', () => {
+  sessionStorage.setItem('dm-intro-seen', 'true');
+  closeIntro();
 });
 
-document.querySelectorAll(".nav-links a").forEach(link => {
-  link.addEventListener("click", () => {
-    navLinks.classList.remove("open");
-    menuToggle.setAttribute("aria-expanded", "false");
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('is-visible');
+      revealObserver.unobserve(entry.target);
+    }
   });
-});
+}, { threshold: 0.18 });
 
-document.getElementById("copyPix").addEventListener("click", async () => {
-  const pixKey = document.getElementById("pixKey").textContent.trim();
-  const message = document.getElementById("copyMessage");
+document.querySelectorAll('.reveal').forEach((element) => revealObserver.observe(element));
 
-  if (pixKey === "ADICIONAR CHAVE PIX") {
-    message.textContent = "Substitua o texto pela chave PIX antes de publicar.";
+const weddingDate = new Date('2027-11-27T12:00:00-03:00').getTime();
+const fields = {
+  days: document.getElementById('days'),
+  hours: document.getElementById('hours'),
+  minutes: document.getElementById('minutes'),
+  seconds: document.getElementById('seconds')
+};
+
+function pad(value, length = 2) {
+  return String(value).padStart(length, '0');
+}
+
+function updateCountdown() {
+  const distance = Math.max(0, weddingDate - Date.now());
+  const days = Math.floor(distance / 86400000);
+  const hours = Math.floor((distance % 86400000) / 3600000);
+  const minutes = Math.floor((distance % 3600000) / 60000);
+  const seconds = Math.floor((distance % 60000) / 1000);
+
+  fields.days.textContent = pad(days, 3);
+  fields.hours.textContent = pad(hours);
+  fields.minutes.textContent = pad(minutes);
+  fields.seconds.textContent = pad(seconds);
+}
+updateCountdown();
+window.setInterval(updateCountdown, 1000);
+
+const musicButton = document.getElementById('musicButton');
+const music = document.getElementById('weddingMusic');
+const musicNote = document.getElementById('musicNote');
+const musicIcon = musicButton.querySelector('.music-button__icon');
+const musicStrong = musicButton.querySelector('strong');
+
+musicButton.addEventListener('click', async () => {
+  if (!music.paused) {
+    music.pause();
+    musicButton.setAttribute('aria-pressed', 'false');
+    musicIcon.textContent = '▶';
+    musicStrong.textContent = 'Ouvir “Nossos Caminhos”';
     return;
   }
 
   try {
-    await navigator.clipboard.writeText(pixKey);
-    message.textContent = "Chave PIX copiada!";
-  } catch {
-    message.textContent = "Não foi possível copiar automaticamente.";
+    await music.play();
+    musicButton.setAttribute('aria-pressed', 'true');
+    musicIcon.textContent = 'Ⅱ';
+    musicStrong.textContent = 'Pausar nossa música';
+    musicNote.hidden = true;
+  } catch (error) {
+    musicNote.hidden = false;
   }
 });

@@ -1,0 +1,20 @@
+HOME DO CASAMENTO — VERSÃO 1.0
+
+Arquivos principais:
+- index.html
+- style.css
+- script.js
+- pasta assets
+
+COMO PUBLICAR NO GITHUB PAGES
+1. Abra o repositório Casamento-Daniel-Michele.
+2. Substitua os arquivos index.html, style.css e script.js.
+3. Envie também toda a pasta assets.
+4. Aguarde cerca de 1 a 3 minutos e atualize o site.
+
+MÚSICA
+Por direitos autorais, o áudio não acompanha este pacote.
+Para o botão tocar no próprio site, coloque um arquivo MP3 legalmente obtido com o nome:
+assets/nossa-musica.mp3
+
+A introdução aparece uma vez por sessão do navegador. Para revê-la, feche e abra a aba ou limpe os dados da sessão.
